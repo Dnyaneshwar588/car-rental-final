@@ -15,6 +15,9 @@ const CarDetails = () => {
   const navigate = useNavigate()
   const [car, setCar] = useState(null)
   const currency = import.meta.env.VITE_CURRENCY
+  const encodedLocation = car?.location ? encodeURIComponent(car.location) : ''
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedLocation}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+  const mapsDirectionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`
 
   const handleSubmit = async (e)=>{
     e.preventDefault();
@@ -106,6 +109,31 @@ const CarDetails = () => {
                 <div>
                   <h1 className='text-xl font-medium mb-3'>Description</h1>
                   <p className='text-gray-500'>{car.description}</p>
+                </div>
+
+                {/* Location Map */}
+                <div>
+                  <div className='flex items-center justify-between mb-3'>
+                    <h1 className='text-xl font-medium'>Pickup Location</h1>
+                    <a
+                      href={mapsDirectionsUrl}
+                      target='_blank'
+                      rel='noreferrer'
+                      className='text-sm text-primary hover:underline'
+                    >
+                      View in Google Maps
+                    </a>
+                  </div>
+                  <div className='rounded-xl overflow-hidden border border-borderColor shadow-sm'>
+                    <iframe
+                      title='Pickup location map'
+                      src={mapEmbedUrl}
+                      loading='lazy'
+                      className='w-full h-72'
+                      referrerPolicy='no-referrer-when-downgrade'
+                    />
+                  </div>
+                  <p className='text-xs text-gray-400 mt-2'>This map shows the verified pickup area based on the car's listed location. Final pickup instructions can be confirmed by the owner.</p>
                 </div>
 
                 {/* Features */}

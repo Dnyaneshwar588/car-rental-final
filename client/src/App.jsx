@@ -15,32 +15,37 @@ import Login from './components/Login'
 import CustomerLogin from './pages/CustomerLogin'
 import OwnerLogin from './pages/owner/OwnerLogin'
 import CombinedLogin from './pages/CombinedLogin'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import { Toaster } from 'react-hot-toast'
 import { useAppContext } from './context/AppContext'
 
 const App = () => {
 
-  const {showLogin, user} = useAppContext()
+  const {showLogin, user, isOwner} = useAppContext()
   const pathname = useLocation().pathname
   const isOwnerPath = pathname.startsWith('/owner') && pathname !== '/owner/login'
   const requireAuth = (element) => (user ? element : <Navigate to='/login' replace />)
+  const requireOwner = (element) => (user && isOwner ? element : <Navigate to='/owner/login' replace />)
 
   return (
     <>
      <Toaster />
       {showLogin && <Login/>}
 
-      {!isOwnerPath && pathname !== '/login' && <Navbar/>}
+      {pathname !== '/login' && <Navbar/>}
 
     <Routes>
       <Route path='/' element={requireAuth(<Home/>)} />
       <Route path='/login' element={<CombinedLogin/>}/>
       <Route path='/customer/login' element={<CustomerLogin/>}/>
       <Route path='/owner/login' element={<OwnerLogin/>}/>
+      <Route path='/forgot-password' element={<ForgotPassword/>}/>
+      <Route path='/reset-password/:token' element={<ResetPassword/>}/>
       <Route path='/car-details/:id' element={requireAuth(<CarDetails/>)} />
       <Route path='/cars' element={requireAuth(<Cars/>)} />
       <Route path='/my-bookings' element={requireAuth(<MyBookings/>)} />
-      <Route path='/owner' element={requireAuth(<Layout />)}>
+      <Route path='/owner' element={requireOwner(<Layout />)}>
         <Route index element={<Dashboard />}/>
         <Route path="add-car" element={<AddCar />}/>
         <Route path="manage-cars" element={<ManageCars />}/>

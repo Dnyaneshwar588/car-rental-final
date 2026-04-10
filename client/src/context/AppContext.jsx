@@ -27,30 +27,46 @@ export const AppProvider = ({ children })=>{
     const fetchUser = async ()=>{
         try {
            const {data} = await axios.get('/api/user/data')
-           if (data.success) {
+           if (data.success && data.user) {
             setUser(data.user)
             setIsOwner(data.user.role === 'owner')
            }else{
-            navigate('/')
+            // Clear stale/invalid token
+            localStorage.removeItem('token')
+            setToken(null)
+            setUser(null)
+            setIsOwner(false)
+            axios.defaults.headers.common['Authorization'] = ''
            }
         } catch (error) {
-            toast.error(error.message)
+            // Clear token on network/auth errors
+            localStorage.removeItem('token')
+            setToken(null)
+            setUser(null)
+            setIsOwner(false)
+            axios.defaults.headers.common['Authorization'] = ''
         }
     }
     // Function to fetch all cars from the server
-
     const fetchCars = async () =>{
         try {
-            const {data} = await axios.get('/api/user/cars')
-            if (data.success && data.cars.length > 0) {
-                setCars(data.cars)
-                setIsDemoData(false)
+            // If user is logged in, fetch from protected endpoint
+            if (token) {
+                const {data} = await axios.get('/api/owner/available-cars')
+                if (data.success && data.cars.length > 0) {
+                    setCars(data.cars)
+                    setIsDemoData(false)
+                } else {
+                    setCars(dummyCarData)
+                    setIsDemoData(true)
+                    if (!data.success) {
+                        toast.error(data.message)
+                    }
+                }
             } else {
+                // For non-logged-in users, use dummy data
                 setCars(dummyCarData)
                 setIsDemoData(true)
-                if (!data.success) {
-                    toast.error(data.message)
-                }
             }
         } catch (error) {
             setCars(dummyCarData)

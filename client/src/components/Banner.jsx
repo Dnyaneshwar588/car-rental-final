@@ -1,8 +1,13 @@
 import React from 'react'
 import { assets } from '../assets/assets'
 import { motion } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '../context/AppContext'
 
 const Banner = () => {
+  const navigate = useNavigate()
+  const { isOwner } = useAppContext()
+
   return (
     <motion.section 
     initial={{ opacity: 0, y: 50 }}
@@ -18,6 +23,7 @@ const Banner = () => {
         <motion.button 
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        onClick={() => navigate(isOwner ? '/owner' : '/owner/login')}
         className='px-6 py-2.5 bg-white hover:bg-[#FFF1D6] transition-all text-[#0E7C3A] rounded-xl text-sm mt-6 cursor-pointer'>List your car</motion.button>
       </div>
 

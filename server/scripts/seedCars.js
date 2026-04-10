@@ -5,8 +5,9 @@ import User from "../models/User.js";
 import Car from "../models/Car.js";
 
 const connect = async () => {
-  const uri = `${process.env.MONGODB_URI}/car-rental`;
-  await mongoose.connect(uri);
+  await mongoose.connect(process.env.MONGODB_URI, {
+    dbName: 'car-rental'
+  });
 };
 
 const seed = async () => {

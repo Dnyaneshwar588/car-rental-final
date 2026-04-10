@@ -1,5 +1,7 @@
 import Booking from "../models/Booking.js"
 import Car from "../models/Car.js";
+import User from "../models/User.js";
+import { sendBookingConfirmationEmail } from "../configs/emailService.js";
 
 
 // Function to Check Availability of Car for a given Date
@@ -74,7 +76,7 @@ export const createBooking = async (req, res)=>{
         const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24))
         const price = carData.pricePerDay * noOfDays;
 
-        await Booking.create({
+        const newBooking = await Booking.create({
             car,
             owner: carData.owner,
             user: _id,
@@ -83,6 +85,21 @@ export const createBooking = async (req, res)=>{
             price,
             status: "confirmed"
         })
+
+        // Send booking confirmation email
+        const userData = await User.findById(_id);
+        if (userData && userData.email) {
+            try {
+                sendBookingConfirmationEmail(userData.email, userData.name, {
+                    car: carData,
+                    pickupDate,
+                    returnDate,
+                    price,
+                });
+            } catch (err) {
+                console.error("Booking email failed:", err.message)
+            }
+        }
 
         res.json({success: true, message: "Booking Created"})
 

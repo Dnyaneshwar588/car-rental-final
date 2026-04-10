@@ -1,17 +1,21 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import { addCar, changeRoleToOwner, deleteCar, getDashboardData, getOwnerCars, toggleCarAvailability, updateUserImage } from "../controllers/ownerController.js";
+import { adminOnly, ownerOnly } from "../middleware/roleCheck.js";
+import { addCar, deleteCar, getDashboardData, getOwnerAccessRequests, getOwnerCars, getAvailableCars, grantOwnerAccess, requestOwnerAccess, toggleCarAvailability, updateUserImage } from "../controllers/ownerController.js";
 import upload from "../middleware/multer.js";
 
 const ownerRouter = express.Router();
 
-ownerRouter.post("/change-role", protect, changeRoleToOwner)
-ownerRouter.post("/add-car", upload.single("image"), protect, addCar)
-ownerRouter.get("/cars", protect, getOwnerCars)
-ownerRouter.post("/toggle-car", protect, toggleCarAvailability)
-ownerRouter.post("/delete-car", protect, deleteCar)
+ownerRouter.post("/add-car", protect, ownerOnly, upload.single("image"), addCar)
+ownerRouter.get("/cars", protect, ownerOnly, getOwnerCars)
+ownerRouter.get("/available-cars", protect, getAvailableCars)
+ownerRouter.post("/toggle-car", protect, ownerOnly, toggleCarAvailability)
+ownerRouter.post("/delete-car", protect, ownerOnly, deleteCar)
 
-ownerRouter.get('/dashboard', protect, getDashboardData)
-ownerRouter.post('/update-image', upload.single("image"), protect, updateUserImage)
+ownerRouter.get('/dashboard', protect, ownerOnly, getDashboardData)
+ownerRouter.post('/update-image', protect, ownerOnly, upload.single("image"), updateUserImage)
+ownerRouter.post('/grant-owner-access', protect, ownerOnly, adminOnly, grantOwnerAccess)
+ownerRouter.get('/access-requests', protect, ownerOnly, adminOnly, getOwnerAccessRequests)
+ownerRouter.post('/request-access', requestOwnerAccess)
 
 export default ownerRouter;

@@ -2,10 +2,10 @@ import express from "express";
 import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
-console.log("Mongo URI:", process.env.MONGODB_URI);
 
 import cors from "cors";
 import connectDB from "./configs/db.js";
+import { bootstrapAdmin } from "./configs/bootstrapAdmin.js";
 import userRouter from "./routes/userRoutes.js";
 import ownerRouter from "./routes/ownerRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
@@ -18,6 +18,7 @@ const app = express()
 
 // Connect Database
 await connectDB()
+await bootstrapAdmin()
 
 // Middleware
 app.use(cors());

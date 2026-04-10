@@ -2,30 +2,15 @@ import React, { useState } from 'react'
 import { assets, menuLinks } from '../assets/assets'
 import {Link, useLocation, useNavigate} from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
-import toast from 'react-hot-toast'
 import {motion} from 'motion/react'
 
 const Navbar = () => {
 
-    const {user, logout, isOwner, axios, setIsOwner} = useAppContext()
+    const {user, logout, isOwner} = useAppContext()
 
     const location = useLocation()
     const [open, setOpen] = useState(false)
     const navigate = useNavigate()
-
-    const changeRole = async ()=>{
-        try {
-            const { data } = await axios.post('/api/owner/change-role')
-            if (data.success) {
-                setIsOwner(true)
-                toast.success(data.message)
-            }else{
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.message)
-        }
-    }
 
   return (
     <motion.div 
@@ -51,8 +36,11 @@ const Navbar = () => {
             </div>
 
             <div className='flex max-sm:flex-col items-start sm:items-center gap-6'>
-
-                <button onClick={()=> isOwner ? navigate('/owner') : changeRole()} className="cursor-pointer px-5 py-2 rounded-lg border border-borderColor hover:bg-gray-50 transition">{isOwner ? 'Dashboard' : 'List cars'}</button>
+                {isOwner ? (
+                    <button onClick={()=> navigate('/owner')} className="cursor-pointer px-5 py-2 rounded-lg border border-borderColor hover:bg-gray-50 transition">Dashboard</button>
+                ) : !user ? (
+                    <button onClick={()=> navigate('/owner/login')} className="cursor-pointer px-5 py-2 rounded-lg border border-borderColor hover:bg-gray-50 transition">List My Car</button>
+                ) : null}
 
                 <button onClick={()=> {user ? logout() : navigate('/login')}} className="cursor-pointer px-7 py-2 bg-primary hover:bg-primary-dull transition-all text-white rounded-lg">{user ? 'Logout' : 'Login'}</button>
             </div>

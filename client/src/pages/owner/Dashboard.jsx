@@ -6,7 +6,10 @@ import toast from 'react-hot-toast'
 
 const Dashboard = () => {
 
-  const {axios, isOwner, currency} = useAppContext()
+  const {axios, isOwner, currency, user} = useAppContext()
+  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'dnyaneshwarkhune723@gmail.com').toLowerCase()
+  const isAdmin = user?.email?.toLowerCase() === adminEmail
+  const [accessRequests, setAccessRequests] = useState([])
 
   const [data, setData] = useState({
     totalCars: 0,
@@ -16,6 +19,8 @@ const Dashboard = () => {
     recentBookings: [],
     monthlyRevenue: 0,
   })
+  const [loadingRequestId, setLoadingRequestId] = useState(null)
+  const [grantedRequestIds, setGrantedRequestIds] = useState(new Set())
 
   const dashboardCards = [
     {title: "Total Cars", value: data.totalCars, icon: assets.carIconColored},
@@ -37,11 +42,48 @@ const Dashboard = () => {
     }
   }
 
+  const fetchAccessRequests = async () => {
+    try {
+      const { data } = await axios.get('/api/owner/access-requests')
+      if (data.success) {
+        setAccessRequests(data.requests || [])
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleGrantOwnerAccess = async (requestId) => {
+    try {
+      setLoadingRequestId(requestId)
+      const { data } = await axios.post('/api/owner/grant-owner-access', { requestId })
+      if (data.success) {
+        toast.success(data.message)
+        setGrantedRequestIds(prev => new Set([...prev, requestId]))
+        setTimeout(() => {
+          fetchAccessRequests()
+          setGrantedRequestIds(new Set())
+        }, 600)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setLoadingRequestId(null)
+    }
+  }
+
   useEffect(()=>{
     if(isOwner){
       fetchDashboardData()
+      if (isAdmin) {
+        fetchAccessRequests()
+      }
     }
-  },[isOwner])
+  },[isOwner, isAdmin])
 
   return (
     <div className='px-4 pt-10 md:px-10 flex-1'>
@@ -94,6 +136,66 @@ const Dashboard = () => {
           <p className='text-gray-500'>Revenue for current month</p>
           <p className='text-3xl mt-6 font-semibold text-primary'>{currency}{data.monthlyRevenue}</p>
         </div>
+
+        {isAdmin && (
+          <div className='p-4 md:p-6 mb-6 border border-borderColor rounded-md w-full'>
+            <h1 className='text-lg font-medium'>Owner Access Requests</h1>
+            <p className='text-gray-500'>Review customer requests and grant owner access</p>
+
+            {accessRequests.length === 0 ? (
+              <p className='text-sm text-gray-500 mt-4'>No pending requests.</p>
+            ) : (
+              <div className='mt-4 overflow-x-auto'>
+                <table className='w-full text-sm'>
+                  <thead>
+                    <tr className='text-left text-gray-500 border-b border-borderColor'>
+                      <th className='py-2 pr-3 font-medium'>Name</th>
+                      <th className='py-2 pr-3 font-medium'>Email</th>
+                      <th className='py-2 pr-3 font-medium'>Requested On</th>
+                      <th className='py-2 font-medium'>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accessRequests.map((request) => (
+                      <tr key={request._id} className='border-b border-borderColor/70'>
+                        <td className='py-3 pr-3'>{request.user?.name || 'User'}</td>
+                        <td className='py-3 pr-3'>{request.email}</td>
+                        <td className='py-3 pr-3'>{new Date(request.createdAt).toLocaleDateString()}</td>
+                        <td className='py-3'>
+                          <button
+                            onClick={() => handleGrantOwnerAccess(request._id)}
+                            disabled={loadingRequestId === request._id || grantedRequestIds.has(request._id)}
+                            className={`px-3 py-1.5 rounded-md cursor-pointer transition-all duration-500 font-medium flex items-center gap-2 ${
+                              grantedRequestIds.has(request._id)
+                                ? 'bg-green-100 text-green-600'
+                                : loadingRequestId === request._id
+                                ? 'bg-blue-100 text-blue-600 opacity-75'
+                                : 'bg-primary hover:bg-primary-dull text-white'
+                            } ${(loadingRequestId === request._id || grantedRequestIds.has(request._id)) ? 'opacity-90' : ''}`}
+                          >
+                            {loadingRequestId === request._id ? (
+                              <>
+                                <span className='inline-block animate-spin'>⏳</span>
+                                <span className='text-blue-600'>Processing...</span>
+                              </>
+                            ) : grantedRequestIds.has(request._id) ? (
+                              <>
+                                <span>✓</span>
+                                <span className='text-green-600'>Granted</span>
+                              </>
+                            ) : (
+                              <span className='text-white'>Grant</span>
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
         
       </div>
 

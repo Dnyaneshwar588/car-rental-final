@@ -9,6 +9,10 @@ const fadeUp = (delay = 0) => ({
 });
 
 const Footer = () => {
+  const emailAddress = "dnyaneshwarkhune723@gmail.com";
+  const instagramUrl = "https://instagram.com/dnyaneshwar_khune18";
+  const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddress)}`;
+
   return (
     <footer className="px-6 md:px-16 lg:px-24 xl:px-32 mt-28 text-sm text-gray-500">
       <motion.div
@@ -32,13 +36,12 @@ const Footer = () => {
             {...fadeUp(0.4)}
             className="flex items-center gap-4 mt-6"
           >
-            {[assets.facebook_logo, assets.instagram_logo, assets.twitter_logo, assets.gmail_logo].map(
-              (logo, i) => (
-                <a key={i} href="#">
-                  <img src={logo} className="w-5 h-5 hover:opacity-70 transition" />
-                </a>
-              )
-            )}
+            <a href={instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram">
+              <img src={assets.instagram_logo} className="w-5 h-5 hover:opacity-70 transition" />
+            </a>
+            <a href={gmailComposeUrl} target="_blank" rel="noreferrer" aria-label="Email">
+              <img src={assets.gmail_logo} className="w-5 h-5 hover:opacity-70 transition" />
+            </a>
           </motion.div>
         </div>
 
@@ -85,10 +88,13 @@ const Footer = () => {
               Contact
             </h2>
             <ul className="mt-4 flex flex-col gap-2">
-              <li>1234 Luxury Drive</li>
-              <li>San Francisco, CA 94107</li>
-              <li>+1 234 567890</li>
-              <li>info@example.com</li>
+              <li>+91 9371656817</li>
+              <li>
+                <a href={`mailto:${emailAddress}`} className="hover:text-gray-700 transition">
+                  {emailAddress}
+                </a>
+              </li>
+              <li>@dnyaneshwar_khune18</li>
             </ul>
           </div>
         </motion.div>

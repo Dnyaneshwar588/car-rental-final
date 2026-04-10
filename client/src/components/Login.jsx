@@ -12,19 +12,41 @@ const Login = ({ variant = "customer", embedded = false }) => {
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
 
+    const handleOwnerAccessRequest = async () => {
+        if (!email) {
+            toast.error('Enter your registered email first')
+            return null
+        }
+
+        try {
+            const { data } = await axios.post('/api/owner/request-access', { email })
+            if (data.success) {
+                toast.success(data.message)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
     const onSubmitHandler = async (event)=>{
         try {
             event.preventDefault();
-            const {data} = await axios.post(`/api/user/${state}`, {name, email, password})
+
+            if (isOwnerFlow && state === "register") {
+                toast.error('Owner signup is disabled. Contact admin to create an owner account.')
+                return null
+            }
+
+            const endpoint = state === "register" ? '/api/user/register' : '/api/user/login'
+            const payload = state === "register" ? {name, email, password} : {email, password}
+            const {data} = await axios.post(endpoint, payload)
 
             if (data.success) {
                 setToken(data.token)
                 localStorage.setItem('token', data.token)
                 axios.defaults.headers.common['Authorization'] = `${data.token}`
-
-                if (state === "register" && isOwnerFlow) {
-                    await axios.post('/api/owner/change-role')
-                }
 
                 const userResponse = await axios.get('/api/user/data')
                 if (userResponse.data.success) {
@@ -37,16 +59,6 @@ const Login = ({ variant = "customer", embedded = false }) => {
                         setIsOwner(false)
                         axios.defaults.headers.common['Authorization'] = ''
                         toast.error('This account is not an owner. Use customer login.')
-                        return null
-                    }
-
-                    if (!isOwnerFlow && nextUser.role === 'owner') {
-                        localStorage.removeItem('token')
-                        setToken(null)
-                        setUser(null)
-                        setIsOwner(false)
-                        axios.defaults.headers.common['Authorization'] = ''
-                        toast.error('This account is an owner. Use owner login.')
                         return null
                     }
 
@@ -89,7 +101,12 @@ const Login = ({ variant = "customer", embedded = false }) => {
                 <p>Password</p>
                 <input onChange={(e) => setPassword(e.target.value)} value={password} placeholder="type here" className="border border-gray-200 rounded w-full p-2 mt-1 outline-primary" type="password" required />
             </div>
-            {state === "register" ? (
+            {state === "login" && (
+                <p className="w-full text-right">
+                    <span onClick={() => navigate('/forgot-password')} className="text-primary cursor-pointer">Forgot password?</span>
+                </p>
+            )}
+            {!isOwnerFlow && (state === "register" ? (
                 <p>
                     Already have account? <span onClick={() => setState("login")} className="text-primary cursor-pointer">click here</span>
                 </p>
@@ -97,6 +114,18 @@ const Login = ({ variant = "customer", embedded = false }) => {
                 <p>
                     Create an account? <span onClick={() => setState("register")} className="text-primary cursor-pointer">click here</span>
                 </p>
+            ))}
+            {isOwnerFlow && (
+                <div className="w-full">
+                    <p className="text-gray-500">Owner accounts are managed by admin.</p>
+                    <button
+                        type="button"
+                        onClick={handleOwnerAccessRequest}
+                        className="mt-2 inline-flex items-center justify-center border border-borderColor px-4 py-2 rounded-md text-sm text-blue-600 hover:bg-gray-50 transition"
+                    >
+                        Request Owner Access
+                    </button>
+                </div>
             )}
             {isOwnerFlow ? (
                 <p>
