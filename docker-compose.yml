@@ -33,7 +33,7 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://3.26.242.54:5000/api
+        VITE_API_URL: http://3.26.242.54:5000
     container_name: car-rental-frontend
     restart: unless-stopped
     ports:
