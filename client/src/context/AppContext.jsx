@@ -3,8 +3,13 @@ import axios from 'axios'
 import {toast} from 'react-hot-toast'
 import { useNavigate } from "react-router-dom";
 
-const defaultApiUrl = `${window.location.protocol}//${window.location.hostname}:5000`
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || defaultApiUrl
+const runtimeApiUrl = `${window.location.protocol}//${window.location.hostname}:5000`
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim()
+const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+// In deployed environments, always talk to backend on the same host.
+const resolvedApiUrl = isLocalHost ? (configuredApiUrl || runtimeApiUrl) : runtimeApiUrl
+axios.defaults.baseURL = resolvedApiUrl
 
 export const AppContext = createContext();
 
