@@ -7,8 +7,8 @@ const runtimeApiUrl = `${window.location.protocol}//${window.location.hostname}:
 const configuredApiUrl = (import.meta.env.VITE_API_URL || '').trim()
 const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
-// In deployed environments, always talk to backend on the same host.
-const resolvedApiUrl = isLocalHost ? (configuredApiUrl || runtimeApiUrl) : runtimeApiUrl
+// Prefer the explicit deployment URL, then local fallback for development.
+const resolvedApiUrl = configuredApiUrl || (isLocalHost ? runtimeApiUrl : window.location.origin)
 axios.defaults.baseURL = resolvedApiUrl
 
 export const AppContext = createContext();
