@@ -10,6 +10,7 @@ const MyBookings = () => {
   const { axios, user, currency } = useAppContext()
 
   const [bookings, setBookings] = useState([])
+  const [cancellingBookingId, setCancellingBookingId] = useState('')
 
   const fetchMyBookings = async ()=>{
     try {
@@ -27,6 +28,24 @@ const MyBookings = () => {
   useEffect(()=>{
     user && fetchMyBookings()
   },[user])
+
+  const handleCancelBooking = async (bookingId) => {
+    try {
+      setCancellingBookingId(bookingId)
+      const { data } = await axios.post('/api/bookings/cancel', { bookingId })
+
+      if (data.success) {
+        toast.success(data.message)
+        fetchMyBookings()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setCancellingBookingId('')
+    }
+  }
 
   return (
     <motion.div 
@@ -65,7 +84,7 @@ const MyBookings = () => {
             <div className='md:col-span-2'>
               <div className='flex items-center gap-2'>
                 <p className='px-3 py-1.5 bg-light rounded'>Booking #{index+1}</p>
-                <p className={`px-3 py-1 text-xs rounded-full ${booking.status === 'confirmed' ? 'bg-green-400/15 text-green-600' : 'bg-red-400/15 text-red-600'}`}>{booking.status}</p>
+                <p className={`px-3 py-1 text-xs rounded-full ${booking.status === 'confirmed' ? 'bg-green-400/15 text-green-600' : booking.status === 'cancelled' ? 'bg-red-400/15 text-red-600' : 'bg-amber-400/15 text-amber-600'}`}>{booking.status}</p>
               </div>
 
               <div className='flex items-start gap-2 mt-3'>
@@ -92,6 +111,16 @@ const MyBookings = () => {
                 <h1 className='text-2xl font-semibold text-primary'>{currency}{booking.price}</h1>
                 <p>Booked on {booking.createdAt.split('T')[0]}</p>
               </div>
+
+              {booking.status !== 'cancelled' && (
+                <button
+                  onClick={() => handleCancelBooking(booking._id)}
+                  disabled={cancellingBookingId === booking._id}
+                  className='cursor-pointer px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50 transition disabled:opacity-60 disabled:cursor-not-allowed'
+                >
+                  {cancellingBookingId === booking._id ? 'Cancelling...' : 'Cancel Ride'}
+                </button>
+              )}
            </div>
 
 

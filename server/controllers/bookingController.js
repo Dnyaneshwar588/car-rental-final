@@ -166,3 +166,36 @@ export const changeBookingStatus = async (req, res)=>{
         res.json({success: false, message: error.message})
     }
 }
+
+// API to allow a customer to cancel their own booking
+export const cancelUserBooking = async (req, res) => {
+    try {
+        const { _id } = req.user;
+        const { bookingId } = req.body;
+
+        if (!bookingId) {
+            return res.json({ success: false, message: "Booking ID is required" });
+        }
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.json({ success: false, message: "Booking not found" });
+        }
+
+        if (booking.user.toString() !== _id.toString()) {
+            return res.json({ success: false, message: "Unauthorized" });
+        }
+
+        if (booking.status === "cancelled") {
+            return res.json({ success: false, message: "Booking already cancelled" });
+        }
+
+        booking.status = "cancelled";
+        await booking.save();
+
+        res.json({ success: true, message: "Booking cancelled successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+}

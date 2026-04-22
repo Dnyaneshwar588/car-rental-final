@@ -8,6 +8,8 @@ import { motion } from 'motion/react'
 
 const FeaturedSection = () => {
 
+
+
     const navigate = useNavigate()
     const {cars} = useAppContext()
 
@@ -52,6 +54,7 @@ const FeaturedSection = () => {
                 >
                     <CarCard car={car}/>
                 </motion.div>
+
             ))
         }
         </motion.div>
@@ -61,3 +64,7 @@ const FeaturedSection = () => {
 }
 
 export default FeaturedSection
+
+
+
+
